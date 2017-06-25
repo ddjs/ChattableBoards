@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Sockets.Plugin.Abstractions;
+    using System.Threading;
 
     public class Server : RemoteBase
     {
@@ -19,7 +20,10 @@
 
         public Server(string address, int port) : base(address, port)
         {
+
         }
+
+        public override string RemoteAddress { get => "Server"; }
 
         public List<ITcpSocketClient> Clients
         {
@@ -51,7 +55,7 @@
             this.server.StartListeningAsync(this.Port);
 
             // listen for clients. 
-            this.server.ConnectionReceived += async (s, e) => await this.Reader(e.SocketClient);
+            this.server.ConnectionReceived += async (s, e) => await this.Reader(e.SocketClient, CancellationToken.None);
 
             return true;
         }
@@ -61,6 +65,7 @@
             this.server.StopListeningAsync().Wait();
             this.server.Dispose();
         }
+
 
         public void NotifyClients(string message)
         {
@@ -77,7 +82,7 @@
             this.Send(client, message.ToByteArray());
         }
 
-        protected override async Task Reader(ITcpSocketClient client)
+        protected override async Task Reader(ITcpSocketClient client, CancellationToken token)
         {
             lock (this.clients)
             {
@@ -85,7 +90,7 @@
                 this.clients.Add(client);
             }
 
-            await base.Reader(client);
+            await base.Reader(client, token);
 
             lock (this.clients)
             {

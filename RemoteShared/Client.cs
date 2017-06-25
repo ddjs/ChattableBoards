@@ -3,11 +3,11 @@
     using Sockets.Plugin;
     using System.Threading;
     using System.Threading.Tasks;
-   
+
 
     public class Client : RemoteBase
     {
-        public const int ClientPort = 786;
+
 
         private readonly TcpSocketClient socket = new TcpSocketClient();
 
@@ -27,6 +27,8 @@
             }
         }
 
+        public override string RemoteAddress { get => this.socket.RemoteAddress; }
+
         public override bool Start()
         {
             // await the connection.
@@ -35,7 +37,8 @@
             if (this.Connected)
             {
                 // Start the reading Thread.
-                this.readingTask = this.Reader(this.socket);
+                this.readingTask = this.Reader(this.socket, cancel.Token);
+
                 return true;
             }
 
@@ -48,7 +51,10 @@
             cancel.Cancel();
 
             // wait for the Task to end. 
-            this.readingTask.Wait();
+            while (this.readingTask.Status == TaskStatus.Running)
+            {
+
+            }
 
             // dispose of the client. 
             this.socket.Dispose();

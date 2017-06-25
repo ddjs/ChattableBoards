@@ -8,10 +8,17 @@ namespace RemoteShared
     using System.Threading.Tasks;
     using Sockets.Plugin.Abstractions;
     using System.Text;
+    using System.Threading;
 
-    public abstract class RemoteBase
+    public delegate void RemoteMessage(ITcpSocketClient sender, string e);
+
+    public abstract class RemoteBase : IDisposable
     {
         public const int MaxPacket = 1024;
+
+        public const int ClientPort = 786;
+
+        private bool isDisposed;
 
         protected RemoteBase(string address, int port)
         {
@@ -19,11 +26,15 @@ namespace RemoteShared
             this.Port = port;
         }
 
-        public event EventHandler<string> ReceivedMessage;
+        public event RemoteMessage ReceivedMessage;
 
         public string Address { get; }
 
+        public abstract string RemoteAddress { get; }
+
         public int Port { get; }
+
+        public string Name { get => this.GetType().Name; }
 
         public abstract bool Start();
 
@@ -40,7 +51,7 @@ namespace RemoteShared
             return true;
         }
 
-        protected virtual async Task Reader(ITcpSocketClient client)
+        protected virtual async Task Reader(ITcpSocketClient client, CancellationToken cancel = default(CancellationToken))
         {
             // get the read stream. 
             var stream = client.ReadStream;
@@ -52,7 +63,7 @@ namespace RemoteShared
 
                 // Receive the data into the buffer
                 // and store the count of data we have.
-                var count = await stream.ReadAsync(buffer, 0, MaxPacket);
+                var count = await stream.ReadAsync(buffer, 0, MaxPacket, cancel);
 
                 // send the actual bytes to the process method. 
                 this.ProcessPacket(client, buffer.Take(count).ToArray());
@@ -62,7 +73,34 @@ namespace RemoteShared
         protected virtual void ProcessPacket(ITcpSocketClient client, byte[] packet)
         {
             Debug.WriteLine(client.RemoteAddress + " Sends: " + BitConverter.ToString(packet));
-            this.ReceivedMessage?.Invoke(this, Encoding.UTF8.GetString(packet, 0, packet.Length));
+            this.ReceivedMessage?.Invoke(client, Encoding.UTF8.GetString(packet, 0, packet.Length));
         }
+
+        #region IDisposable Support
+
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+            {
+                return;
+            }
+            if (disposing)
+            {
+                this.Stop();
+            }
+
+            isDisposed = true;
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

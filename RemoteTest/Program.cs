@@ -1,5 +1,8 @@
 ﻿using RemoteShared;
+using Sockets.Plugin.Abstractions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RemoteTest
 {
@@ -7,20 +10,44 @@ namespace RemoteTest
     {
         static void Main(string[] args)
         {
-            var server = new Server("localhost", Client.ClientPort);
-            server.Start();
-            server.ReceivedMessage += (s, e) => Console.WriteLine(e);
-            var client = new Client("Localhost");
-            client.Start();
+            var list = new List<IDisposable>();
 
-            client.Send("Hello");
-            client.ReceivedMessage += (s, e) => Console.WriteLine(e);
+            using (var server = new Server("localhost", Client.ClientPort))
+            {
+                server.Start();
+                server.ReceivedMessage += HandleMessage;
+             
+                for (int i = 0; i < 10; i++)
+                {
+                    var client = new Client("Localhost");
 
-            Console.ReadKey(true);
+                    client.ReceivedMessage += HandleMessage;
 
-            server.Stop();
+                    client.Start();
 
-            while (true) ;
+                    client.Send("Hello");
+                    list.Add(client);
+
+                }
+
+                Console.ReadKey(true);
+
+                server.NotifyClients("Bye");
+
+
+            }
+
+            list.ForEach(x => x.Dispose());
+            
+            while (true)
+            {
+
+            }
+        }
+
+        private static void HandleMessage(ITcpSocketClient sender, string e)
+        {
+            Console.WriteLine(sender.RemoteAddress + ":" + sender.RemotePort +  "\t\tSaid: " + e);
         }
     }
 }
