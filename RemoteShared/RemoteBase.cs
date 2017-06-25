@@ -9,8 +9,13 @@ namespace RemoteShared
     using Sockets.Plugin.Abstractions;
     using System.Text;
     using System.Threading;
+    using System.IO;
+    using RemoteShared.DataSets;
 
     public delegate void RemoteMessage(ITcpSocketClient sender, string e);
+
+    public delegate void RemoteResponseRequest(ITcpSocketClient sender, ResponseRequest e);
+
 
     public abstract class RemoteBase : IDisposable
     {
@@ -18,7 +23,15 @@ namespace RemoteShared
 
         public const int ClientPort = 786;
 
+        public const int HeaderLength = 4;
+
+        protected static readonly byte[] exitPacket = new byte[] { 0xff, 0xff, 0xff, 0xE, 0x1, 0x0, 0x2, 0xff, 0xff };
+
+     
+
         private bool isDisposed;
+
+        private bool running;
 
         protected RemoteBase(string address, int port)
         {
@@ -27,6 +40,8 @@ namespace RemoteShared
         }
 
         public event RemoteMessage ReceivedMessage;
+
+        public event RemoteResponseRequest Message;
 
         public string Address { get; }
 
@@ -39,6 +54,8 @@ namespace RemoteShared
         public abstract bool Start();
 
         public abstract void Stop();
+
+        public abstract void HandleMessage(string message);
 
         protected virtual bool Send(ITcpSocketClient client, byte[] buffer)
         {
@@ -55,25 +72,46 @@ namespace RemoteShared
         {
             // get the read stream. 
             var stream = client.ReadStream;
+            this.running = true;
 
-            while (stream.CanRead)
+            while (stream.CanRead && running)
             {
                 // create a buffer to store the data from the client.
                 var buffer = new byte[MaxPacket + 1];
 
-                // Receive the data into the buffer
-                // and store the count of data we have.
-                var count = await stream.ReadAsync(buffer, 0, MaxPacket, cancel);
+                try
+                {
+                    // Receive the data into the buffer
+                    // and store the count of data we have.
+                    var count = await stream.ReadAsync(buffer, 0, MaxPacket, cancel);
 
-                // send the actual bytes to the process method. 
-                this.ProcessPacket(client, buffer.Take(count).ToArray());
+                    // send the actual bytes to the process method. 
+                    this.ProcessPacket(client, buffer.Take(count).ToArray());
+                }
+                catch
+                {
+                    // ignore
+                    break;
+                }
             }
         }
 
         protected virtual void ProcessPacket(ITcpSocketClient client, byte[] packet)
         {
-            Debug.WriteLine(client.RemoteAddress + " Sends: " + BitConverter.ToString(packet));
-            this.ReceivedMessage?.Invoke(client, Encoding.UTF8.GetString(packet, 0, packet.Length));
+            if (packet.Equals(exitPacket))
+            {
+                this.running = false;
+                return;
+            }
+
+            if (ResponseRequest.IsResponseRequestPacket(packet, out ResponseRequest temp))
+            {
+                this.Message?.Invoke(client, temp);
+            }
+            else
+            {
+                this.ReceivedMessage?.Invoke(client, Encoding.UTF8.GetString(packet, 0, packet.Length));
+            }
         }
 
         #region IDisposable Support

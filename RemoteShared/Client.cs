@@ -1,6 +1,8 @@
 ﻿namespace RemoteShared
 {
+    using RemoteShared.DataSets;
     using Sockets.Plugin;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -45,10 +47,18 @@
             return false;
         }
 
+        public override void HandleMessage(string message)
+        {
+
+        }
+
         public override void Stop()
         {
+            // notify server we are exiting. 
+            this.Send(this.socket, exitPacket);
+
             // cancel our reading Task by use of the cancellation token.
-            cancel.Cancel();
+            cancel.Cancel(false);
 
             // wait for the Task to end. 
             while (this.readingTask.Status == TaskStatus.Running)
@@ -58,6 +68,11 @@
 
             // dispose of the client. 
             this.socket.Dispose();
+        }
+
+        public void Send(ResponseRequest message)
+        {
+            base.Send(this.socket, message.ToByteArray());
         }
 
         public void Send(string message)

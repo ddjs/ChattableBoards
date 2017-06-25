@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Sockets.Plugin.Abstractions;
     using System.Threading;
+    using RemoteShared.DataSets;
 
     public class Server : RemoteBase
     {
@@ -66,6 +67,21 @@
             this.server.Dispose();
         }
 
+        public void NotifyClients(ResponseRequest message)
+        {
+            var buffer = message.ToByteArray();
+
+            foreach (var client in this.clients.Where(x => x.WriteStream.CanWrite))
+            {
+                this.Send(client, buffer);
+            }
+        }
+
+        public void NotifyClient(ITcpSocketClient client, ResponseRequest message)
+        {
+            this.Send(client, message.ToByteArray());
+        }
+
 
         public void NotifyClients(string message)
         {
@@ -80,6 +96,11 @@
         public void NotifyClient(ITcpSocketClient client, string message)
         {
             this.Send(client, message.ToByteArray());
+        }
+
+        public override void HandleMessage(string message)
+        {
+
         }
 
         protected override async Task Reader(ITcpSocketClient client, CancellationToken token)

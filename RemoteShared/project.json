@@ -1,6 +1,7 @@
 ﻿{
   "supports": {},
   "dependencies": {
+    "Newtonsoft.Json": "10.0.3",
     "rda.SocketsForPCL": "2.0.2"
   },
   "frameworks": {

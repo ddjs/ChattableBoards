@@ -38,6 +38,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
+    <Compile Include="DataSets\Commands.cs" />
+    <Compile Include="DataSets\Common.cs" />
+    <Compile Include="DataSets\DataExtensions.cs" />
+    <Compile Include="DataSets\MessageStatus.cs" />
+    <Compile Include="DataSets\ResponseRequest.cs" />
+    <Compile Include="DataSets\Room.cs" />
+    <Compile Include="DataSets\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteBase.cs" />
     <Compile Include="RemoteExtensions.cs" />

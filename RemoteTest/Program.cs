@@ -1,8 +1,10 @@
 ﻿using RemoteShared;
+using RemoteShared.DataSets;
 using Sockets.Plugin.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace RemoteTest
 {
@@ -10,44 +12,30 @@ namespace RemoteTest
     {
         static void Main(string[] args)
         {
-            var list = new List<IDisposable>();
 
-            using (var server = new Server("localhost", Client.ClientPort))
+            using (var client = new Client("localhost", RemoteBase.ClientPort))
             {
-                server.Start();
-                server.ReceivedMessage += HandleMessage;
-             
-                for (int i = 0; i < 10; i++)
+                client.Message += HandleMessage;
+
+                client.Start();
+
+                while (true)
                 {
-                    var client = new Client("Localhost");
+                    client.Send(new ResponseRequest() { Command = Commands.FindUser, Data = "Justin" });
 
-                    client.ReceivedMessage += HandleMessage;
-
-                    client.Start();
-
-                    client.Send("Hello");
-                    list.Add(client);
-
+                    var key = Console.ReadKey(true).Key;
+                    if (key == ConsoleKey.Q)
+                    {
+                        break;
+                    }
                 }
-
-                Console.ReadKey(true);
-
-                server.NotifyClients("Bye");
-
-
-            }
-
-            list.ForEach(x => x.Dispose());
-            
-            while (true)
-            {
-
             }
         }
 
-        private static void HandleMessage(ITcpSocketClient sender, string e)
+        private static void HandleMessage(ITcpSocketClient sender, ResponseRequest e)
         {
-            Console.WriteLine(sender.RemoteAddress + ":" + sender.RemotePort +  "\t\tSaid: " + e);
+            var user = e.Data.ChangeType<User>();
+            Console.WriteLine(sender.RemoteAddress + ":" + sender.RemotePort + "\t\tSaid: " + user.ToString());
         }
     }
 }
