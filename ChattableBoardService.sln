@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChattableBoardRole", "Chatt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteTest", "RemoteTest\RemoteTest.csproj", "{8C4CE279-6944-431F-B7F5-E80BA2BA14F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteShared", "ClassLibrary1\RemoteShared.csproj", "{0BA0A255-9FFD-4FC6-9727-0535963709F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteShared", "RemoteShared\RemoteShared.csproj", "{0BA0A255-9FFD-4FC6-9727-0535963709F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

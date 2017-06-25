@@ -1,5 +1,4 @@
-﻿
-using RemoteShared;
+﻿using RemoteShared;
 using System;
 
 namespace RemoteTest

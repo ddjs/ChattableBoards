@@ -56,7 +56,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\RemoteShared.csproj">
+    <ProjectReference Include="..\RemoteShared\RemoteShared.csproj">
       <Project>{0ba0a255-9ffd-4fc6-9727-0535963709f0}</Project>
       <Name>RemoteShared</Name>
     </ProjectReference>
