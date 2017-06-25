@@ -9,18 +9,34 @@
 
     public class Client : RemoteBase
     {
-
-
+        /// <summary>
+        /// The socket we use to connect to the server.
+        /// </summary>
         private readonly TcpSocketClient socket = new TcpSocketClient();
 
+        /// <summary>
+        /// The cancellation token for reading from the server.
+        /// </summary>
         private readonly CancellationTokenSource cancel = new CancellationTokenSource();
 
+
+        /// <summary>
+        /// The reading Task. 
+        /// </summary>
         private Task readingTask;
 
-        public Client(string ipAddress, int port = ClientPort) : base(ipAddress, port)
+        /// <summary>
+        /// Create an Instance of a Client
+        /// </summary>
+        /// <param name="ipAddress"> The Address of the server we wish to connect to</param>
+        /// <param name="port">The Port of the server. </param>
+        public Client(string ipAddress, int port = Port) : base(ipAddress, port)
         {
         }
 
+        /// <summary>
+        /// Lets us know if we are connected. 
+        /// </summary>
         public bool Connected
         {
             get
@@ -29,8 +45,17 @@
             }
         }
 
+        /// <summary>
+        /// Gets our remote Address.
+        /// </summary>
         public override string RemoteAddress { get => this.socket.RemoteAddress; }
 
+        /// <summary>
+        /// Starts the Connection to the server. 
+        /// </summary>
+        /// <returns>
+        /// Successful connection returns true;
+        /// </returns>
         public override bool Start()
         {
             // await the connection.
@@ -47,11 +72,9 @@
             return false;
         }
 
-        public override void HandleMessage(string message)
-        {
-
-        }
-
+        /// <summary>
+        /// Stops the connection to the server.
+        /// </summary>
         public override void Stop()
         {
             // notify server we are exiting. 
@@ -63,18 +86,29 @@
             // wait for the Task to end. 
             while (this.readingTask.Status == TaskStatus.Running)
             {
-
             }
 
             // dispose of the client. 
             this.socket.Dispose();
         }
 
+        /// <summary>
+        /// Sends a Request to the server
+        /// </summary>
+        /// <param name="message">
+        /// The Request to make. 
+        /// </param>
         public void Send(ResponseRequest message)
         {
             base.Send(this.socket, message.ToByteArray());
         }
 
+        /// <summary>
+        /// Sends a string message to the server
+        /// </summary>
+        /// <param name="message">
+        /// the string to send
+        /// </param>
         public void Send(string message)
         {
             base.Send(this.socket, message.ToByteArray());

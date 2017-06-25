@@ -98,11 +98,6 @@
             this.Send(client, message.ToByteArray());
         }
 
-        public override void HandleMessage(string message)
-        {
-
-        }
-
         protected override async Task Reader(ITcpSocketClient client, CancellationToken token)
         {
             lock (this.clients)

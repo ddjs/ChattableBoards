@@ -12,8 +12,7 @@ namespace RemoteTest
     {
         static void Main(string[] args)
         {
-
-            using (var client = new Client("localhost", RemoteBase.ClientPort))
+            using (var client = new Client("localhost"))
             {
                 client.Message += HandleMessage;
 

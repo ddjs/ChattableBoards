@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace RemoteShared.DataSets
 {
@@ -26,24 +25,11 @@ namespace RemoteShared.DataSets
             return !output.Equals(default(ResponseRequest));
         }
 
-        public bool IsValid
-        {
-            get
-            {
-                return this.Data != null;
-            }
-        }
-
         public byte[] ToByteArray()
         {
             var packet = new List<byte>(ResponseRequestCommandHeader);
             packet.AddRange(this.ToJson().ToByteArray());
             return packet.ToArray();
-        }
-
-        internal static bool IsResponseRequestPacket(object p)
-        {
-            throw new NotImplementedException();
         }
     }
 }
